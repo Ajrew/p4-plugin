@@ -120,7 +120,7 @@ public class P4Step extends SCMStep {
 
 		// use basic populate options if no class provided
 		if(populate == null) {
-			populate = new AutoCleanImpl(true, true, false, false, null, null);
+			populate = new AutoCleanImpl(true, true, false, false, null, null, null);
 		}
 
 		PerforceScm scm = new PerforceScm(credential, workspace, null, populate, browser);

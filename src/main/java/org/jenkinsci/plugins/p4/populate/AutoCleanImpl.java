@@ -12,17 +12,17 @@ public class AutoCleanImpl extends Populate {
 	private final boolean delete;
 
 	@DataBoundConstructor
-	public AutoCleanImpl(boolean replace, boolean delete, boolean modtime, boolean quiet, String pin,
+	public AutoCleanImpl(boolean replace, boolean delete, boolean modtime, boolean quiet, String pin, String viewMask,
 			ParallelSync parallel) {
 		// normal sync; no -f, no -p
-		super(true, false, modtime, quiet, pin, parallel);
+		super(true, false, modtime, quiet, pin, viewMask, parallel);
 		this.replace = replace;
 		this.delete = delete;
 	}
 
 	// Default for test cases
 	public AutoCleanImpl() {
-		super(true, true, false, false, null, null);
+		super(true, true, false, false, null, null, null);
 		this.replace = false;
 		this.delete = false;
 	}

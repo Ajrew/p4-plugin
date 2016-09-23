@@ -17,8 +17,8 @@ public class ForceCleanImpl extends Populate {
 	 * @param parallel Parallel sync options
 	 */
 	@DataBoundConstructor
-	public ForceCleanImpl(boolean have, boolean quiet, String pin, ParallelSync parallel) {
-		super(have, true, false, quiet, pin, parallel);
+	public ForceCleanImpl(boolean have, boolean quiet, String pin, ParallelSync parallel, String viewMask) {
+		super(have, true, false, quiet, pin, viewMask, parallel);
 	}
 
 	@Extension

@@ -170,14 +170,30 @@ public class ClientHelper extends ConnectionHelper {
 		}
 
 		// build file revision spec
-		String path = iclient.getRoot() + "/...";
+                String viewMask = populate.getViewMask();
+                String path = iclient.getRoot() + "/...";   		
 		String revisions = path + "@" + buildChange;
 
 		// Sync files
 		if (populate instanceof CheckOnlyImpl) {
 			syncHaveList(revisions, populate);
 		} else {
-			syncFiles(revisions, populate);
+                    if (viewMask != null)
+                    {
+                        String[] syncFolder = viewMask.split(" ");
+                        log("Syncing with the following viewmask ");
+                        for (int i = 0; i < syncFolder.length; i++) {
+                            log(syncFolder[i]);
+                        }                       
+                       log("List lenght is " + syncFolder.length);
+                        for (int i = 0; i < syncFolder.length; i++) {
+                            revisions = syncFolder[i] + "@" + buildChange;
+                            syncFiles(revisions, populate);
+                        }
+                       
+                    } else {
+                        syncFiles(revisions, populate);   
+                    }			
 		}
 
 		// Save buildChange in client Description.
@@ -374,7 +390,7 @@ public class ClientHelper extends ConnectionHelper {
 
 		// Only use quiet populate option to insure a clean sync
 		boolean quiet = populate.isQuiet();
-		Populate clean = new AutoCleanImpl(false, false, false, quiet, null, null);
+		Populate clean = new AutoCleanImpl(false, false, false, quiet, null, null, null);
 		syncFiles(revisions, clean);
 
 		// remove all files from workspace

@@ -55,7 +55,7 @@ public class RemoveClientTask extends AbstractTask implements FileCallable<Boole
 		try {
 			// remove files if required
 			if (deleteFiles) {
-				ForceCleanImpl forceClean = new ForceCleanImpl(true, true, null, null);
+				ForceCleanImpl forceClean = new ForceCleanImpl(true, true, null, null, null);
 				logger.info("P4: unsyncing client: " + client);
 				p4.syncFiles(new P4Revision(0), forceClean);
 

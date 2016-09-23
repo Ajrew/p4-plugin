@@ -26,6 +26,15 @@
 		</table>
 	</f:entry>
 	
+	<f:entry field="viewMask">
+		<table border="0" width="100%">
+			<tr>
+				<td nowrap="true">View mask for syncing </td>
+				<td width="100%"><f:textbox/></td>
+			</tr>
+		</table>
+	</f:entry>
+
 	<f:section title="Use local 'p4' for parallel sync">
 		<f:advanced>
 			<f:entry>

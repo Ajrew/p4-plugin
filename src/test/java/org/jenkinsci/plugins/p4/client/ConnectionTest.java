@@ -576,7 +576,7 @@ public class ConnectionTest {
 		ManualWorkspaceImpl workspace = new ManualWorkspaceImpl("none", false, client, spec);
 
 		// Pin at label auto15
-		Populate populate = new AutoCleanImpl(true, true, false, false, "auto15", null);
+		Populate populate = new AutoCleanImpl(true, true, false, false, "auto15", null, null);
 		PerforceScm scm = new PerforceScm(credential, workspace, populate);
 		project.setScm(scm);
 		project.save();
@@ -612,7 +612,7 @@ public class ConnectionTest {
 		ManualWorkspaceImpl workspace = new ManualWorkspaceImpl("none", false, client, spec);
 
 		// Pin at label auto15
-		Populate populate = new AutoCleanImpl(true, true, false, false, "auto15", null);
+		Populate populate = new AutoCleanImpl(true, true, false, false, "auto15", null,  null);
 		List<Filter> filter = new ArrayList<Filter>();
 		FilterPerChangeImpl inc = new FilterPerChangeImpl(true);
 		filter.add(inc);
@@ -652,7 +652,7 @@ public class ConnectionTest {
 		FreeStyleProject project = jenkins.createFreeStyleProject("Manual-Head");
 		ManualWorkspaceImpl workspace = new ManualWorkspaceImpl("none", false, client, spec);
 
-		Populate populate = new AutoCleanImpl(true, true, false, false, null, null);
+		Populate populate = new AutoCleanImpl(true, true, false, false, null, null, null);
 		List<Filter> filter = new ArrayList<Filter>();
 
 		// Filter changes outside of //depot/Data path
@@ -694,7 +694,7 @@ public class ConnectionTest {
 		FreeStyleProject project = jenkins.createFreeStyleProject("Manual-Head");
 		ManualWorkspaceImpl workspace = new ManualWorkspaceImpl("none", false, client, spec);
 
-		Populate populate = new AutoCleanImpl(true, true, false, false, null, null);
+		Populate populate = new AutoCleanImpl(true, true, false, false, null, null, null);
 		List<Filter> filter = new ArrayList<Filter>();
 
 		// Filter changes outside of //depot/Main and also under //depot/Main/TPI-83
@@ -742,7 +742,7 @@ public class ConnectionTest {
 		FreeStyleProject project = jenkins.createFreeStyleProject("Manual_Modtime");
 		ManualWorkspaceImpl workspace = new ManualWorkspaceImpl("none", false, client, spec);
 		boolean isModtime = true;
-		Populate populate = new AutoCleanImpl(true, true, isModtime, false, null, null);
+		Populate populate = new AutoCleanImpl(true, true, isModtime, false, null, null, null);
 		PerforceScm scm = new PerforceScm(credential, workspace, populate);
 		project.setScm(scm);
 		project.save();
@@ -792,7 +792,7 @@ public class ConnectionTest {
 	public void shouldNotTriggerJobIfNoChange() throws Exception {
 		FreeStyleProject project = jenkins.createFreeStyleProject("Static-Change");
 		StaticWorkspaceImpl workspace = new StaticWorkspaceImpl("none", false, "test.ws");
-		Populate populate = new AutoCleanImpl(true, true, false, false, null, null);
+		Populate populate = new AutoCleanImpl(true, true, false, false, null, null, null);
 		PerforceScm scm = new PerforceScm(auth.getId(), workspace, populate);
 		project.setScm(scm);
 		P4Trigger trigger = new P4Trigger();
@@ -822,7 +822,7 @@ public class ConnectionTest {
 		FreeStyleProject project = jenkins.createFreeStyleProject("Manual-Head");
 		ManualWorkspaceImpl workspace = new ManualWorkspaceImpl("none", false, client, spec);
 		// Pin at label auto15
-		Populate populate = new AutoCleanImpl(true, true, false, false, null, null);
+		Populate populate = new AutoCleanImpl(true, true, false, false, null, null, null);
 		PerforceScm scm = new PerforceScm(auth.getId(), workspace, populate);
 		project.setScm(scm);
 		P4Trigger trigger = new P4Trigger();
@@ -870,7 +870,7 @@ public class ConnectionTest {
 		// Hack to make polling believe there are remote changes: sync the
 		// client 'test.ws' at an anterior revision to test the trigger
 		ClientHelper p4 = new ClientHelper(auth, null, "test.ws", "utf8");
-		Populate populate = new AutoCleanImpl(true, true, false, false, null, null);
+		Populate populate = new AutoCleanImpl(true, true, false, false, null, null, null);
 		p4.syncFiles(new P4Revision("9"), populate);
 
 		// Test trigger

@@ -16,13 +16,15 @@ public abstract class Populate implements ExtensionPoint, Describable<Populate>,
 	private final boolean modtime;
 	private final boolean quiet; // task '-q'
 	private final String pin;
+        private final String viewMask;
 	private final ParallelSync parallel;
 
-	public Populate(boolean have, boolean force, boolean modtime, boolean quiet, String pin, ParallelSync parallel) {
+	public Populate(boolean have, boolean force, boolean modtime, boolean quiet, String pin, String viewMask, ParallelSync parallel) {
 		this.have = have;
 		this.force = force;
 		this.modtime = modtime;
 		this.pin = pin;
+                this.viewMask = viewMask;
 		this.quiet = quiet;
 		this.parallel = parallel;
 	}
@@ -46,6 +48,9 @@ public abstract class Populate implements ExtensionPoint, Describable<Populate>,
 	public String getPin() {
 		return pin;
 	}
+        public String getViewMask() {
+            return viewMask;
+        }
 
 	public ParallelSync getParallel() {
 		return parallel;

@@ -21,8 +21,8 @@ public class SyncOnlyImpl extends Populate {
 	 * @param parallel Parallel sync option
 	 */
 	@DataBoundConstructor
-	public SyncOnlyImpl(boolean revert, boolean have, boolean modtime, boolean quiet, String pin, ParallelSync parallel) {
-		super(have, false, modtime, quiet, pin, parallel);
+	public SyncOnlyImpl(boolean revert, boolean have, boolean modtime, boolean quiet, String pin, String viewMask, ParallelSync parallel) {
+		super(have, false, modtime, quiet, pin, viewMask, parallel);
 		this.revert = revert;
 	}
 
