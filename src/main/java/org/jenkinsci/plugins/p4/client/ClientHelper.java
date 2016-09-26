@@ -184,8 +184,7 @@ public class ClientHelper extends ConnectionHelper {
                         log("Syncing with the following viewmask ");
                         for (int i = 0; i < syncFolder.length; i++) {
                             log(syncFolder[i]);
-                        }                       
-                       log("List lenght is " + syncFolder.length);
+                        }                                              
                         for (int i = 0; i < syncFolder.length; i++) {
                             revisions = syncFolder[i] + "@" + buildChange;
                             syncFiles(revisions, populate);

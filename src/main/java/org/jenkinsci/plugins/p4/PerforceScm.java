@@ -51,6 +51,7 @@ import org.jenkinsci.plugins.p4.tasks.CheckoutTask;
 import org.jenkinsci.plugins.p4.tasks.PollTask;
 import org.jenkinsci.plugins.p4.tasks.RemoveClientTask;
 import org.jenkinsci.plugins.p4.workspace.Workspace;
+import org.jenkinsci.plugins.p4.Environment.AddPerforceVariables;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -399,6 +400,14 @@ public class PerforceScm extends SCM {
 			}
 			success &= buildWorkspace.act(task);
 		}
+                // Maximum hack
+                EnvVars envVariables = run.getEnvironment(listener);
+                                
+                AddPerforceVariables variables = new AddPerforceVariables();
+                String buildChange = Integer.toString(task.getSyncChange().getChange());
+                variables.SetChangelist(buildChange);
+                variables.buildEnvironmentFor(run,envVariables,listener);
+                
 
 		// Only write change log if build succeeded and changeLogFile has been
 		// set.
@@ -483,7 +492,7 @@ public class PerforceScm extends SCM {
 	@Override
 	public void buildEnvVars(AbstractBuild<?, ?> build, Map<String, String> env) {
 		super.buildEnvVars(build, env);
-
+              
 		TagAction tagAction = build.getAction(TagAction.class);
 		if (tagAction != null) {
 			// Set P4_CHANGELIST value
@@ -503,7 +512,7 @@ public class PerforceScm extends SCM {
 				String port = tagAction.getPort();
 				env.put("P4_PORT", port);
 			}
-
+                        
 			// Set P4_USER connection
 			if (tagAction.getUser() != null) {
 				String user = tagAction.getUser();
