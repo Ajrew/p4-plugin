@@ -42,6 +42,7 @@ import org.jenkinsci.plugins.p4.changes.P4Revision;
 import org.jenkinsci.plugins.p4.client.ConnectionHelper;
 import org.jenkinsci.plugins.p4.credentials.P4CredentialsImpl;
 import org.jenkinsci.plugins.p4.filters.Filter;
+import org.jenkinsci.plugins.p4.filters.FilterPerChangeImpl;
 import org.jenkinsci.plugins.p4.filters.FilterPollMasterImpl;
 import org.jenkinsci.plugins.p4.matrix.MatrixOptions;
 import org.jenkinsci.plugins.p4.populate.Populate;
@@ -78,7 +79,7 @@ public class PerforceScm extends SCM {
 	private final Populate populate;
 	private final P4Browser browser;
 
-	private transient List<Integer> changes;
+	private transient List<P4Revision> incrementalChanges;
 	private transient P4Revision parentChange;
 
 	/**
@@ -108,8 +109,8 @@ public class PerforceScm extends SCM {
 		return browser;
 	}
 
-	public List<Integer> getChanges() {
-		return changes;
+	public List<P4Revision> getIncrementalChanges() {
+		return incrementalChanges;
 	}
 
 	/**
@@ -332,10 +333,10 @@ public class PerforceScm extends SCM {
 		task.setLimit(pin);
 
 		// Execute remote task
-		changes = buildWorkspace.act(task);
+		incrementalChanges = buildWorkspace.act(task);
 
 		// Report changes
-		if (!changes.isEmpty()) {
+		if (!incrementalChanges.isEmpty()) {
 			return PollingResult.BUILD_NOW;
 		}
 		return PollingResult.NO_CHANGES;
@@ -361,13 +362,15 @@ public class PerforceScm extends SCM {
 		// Get workspace used for the Task
 		Workspace ws = task.setEnvironment(run, workspace, buildWorkspace);
 
-		// Set changes to build (used by polling), MUST clear after use.
-		ws = task.setNextChange(ws, changes);
-		changes = new ArrayList<Integer>();
-
 		// Set the Workspace and initialise
 		task.setWorkspace(ws);
 		task.initialise();
+
+		// Override build change if polling per change, MUST clear after use.
+		if(isIncremental()) {
+			task.setIncrementalChanges(incrementalChanges);
+		}
+		incrementalChanges = new ArrayList<P4Revision>();
 
 		// Add tagging action to build, enabling label support.
 		TagAction tag = new TagAction(run);
@@ -668,6 +671,9 @@ public class PerforceScm extends SCM {
 
 		private boolean hideTicket;
 
+		private int maxFiles;
+		private int maxChanges;
+
 		public boolean isAutoSave() {
 			return autoSave;
 		}
@@ -694,6 +700,14 @@ public class PerforceScm extends SCM {
 
 		public boolean isHideTicket() {
 			return hideTicket;
+		}
+
+		public int getMaxFiles() {
+			return maxFiles;
+		}
+
+		public int getMaxChanges() {
+			return maxChanges;
 		}
 
 		/**
@@ -758,6 +772,15 @@ public class PerforceScm extends SCM {
 			} catch (JSONException e) {
 				logger.info("Unable to read TICKET security configuration.");
 				hideTicket = false;
+			}
+
+			try {
+				maxFiles = json.getInt("maxFiles");
+				maxChanges = json.getInt("maxChanges");
+			} catch (JSONException e) {
+				logger.info("Unable to read Max limits in configuration.");
+				maxFiles = 50;
+				maxChanges = 10;
 			}
 
 			save();
@@ -829,5 +852,23 @@ public class PerforceScm extends SCM {
 		}
 		Jenkins jenkins = Jenkins.getInstance();
 		return jenkins;
+	}
+
+	/**
+	 * Incremental polling filter is set
+	 *
+	 * @return true if set
+	 */
+	private boolean isIncremental() {
+		if (filter != null) {
+			for (Filter f : filter) {
+				if (f instanceof FilterPerChangeImpl) {
+					if (((FilterPerChangeImpl) f).isPerChange()) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 }

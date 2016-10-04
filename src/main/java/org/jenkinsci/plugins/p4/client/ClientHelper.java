@@ -24,9 +24,12 @@ import com.perforce.p4java.option.server.GetFileContentsOptions;
 import com.perforce.p4java.option.server.OpenedFilesOptions;
 import com.perforce.p4java.server.CmdSpec;
 import hudson.AbortException;
+import hudson.model.Descriptor;
 import hudson.model.TaskListener;
+import jenkins.model.Jenkins;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.p4.PerforceScm;
 import org.jenkinsci.plugins.p4.changes.P4Revision;
 import org.jenkinsci.plugins.p4.credentials.P4BaseCredentials;
 import org.jenkinsci.plugins.p4.populate.AutoCleanImpl;
@@ -908,18 +911,17 @@ public class ClientHelper extends ConnectionHelper {
 	 * @return List of changes
 	 * @throws Exception push up stack
 	 */
-	public List<Integer> listChanges(P4Revision from, P4Revision to) throws Exception {
+	public List<P4Revision> listChanges(P4Revision from, P4Revision to) throws Exception {
 		// return empty array, if from and to are equal, or Perforce will report
 		// a change
 		if (from.equals(to)) {
-			return new ArrayList<Integer>();
+			return new ArrayList<P4Revision>();
 		}
 
 		String ws = "//" + iclient.getName() + "/...@" + from + "," + to;
-		List<Integer> list = listChanges(ws);
+		List<P4Revision> list = listChanges(ws);
 		if (!from.isLabel()) {
-			Object obj = from.getChange();
-			list.remove(obj);
+			list.remove(from);
 		}
 		return list;
 	}
@@ -932,12 +934,11 @@ public class ClientHelper extends ConnectionHelper {
 	 * @return List of changes
 	 * @throws Exception push up stack
 	 */
-	public List<Integer> listChanges(P4Revision from) throws Exception {
+	public List<P4Revision> listChanges(P4Revision from) throws Exception {
 		String ws = "//" + iclient.getName() + "/...@" + from + ",now";
-		List<Integer> list = listChanges(ws);
+		List<P4Revision> list = listChanges(ws);
 		if (!from.isLabel()) {
-			Object obj = from.getChange();
-			list.remove(obj);
+			list.remove(from);
 		}
 		return list;
 	}
@@ -948,25 +949,35 @@ public class ClientHelper extends ConnectionHelper {
 	 * @return List of changes
 	 * @throws Exception push up stack
 	 */
-	public List<Integer> listChanges() throws Exception {
+	public List<P4Revision> listChanges() throws Exception {
 		String ws = "//" + iclient.getName() + "/...";
 		return listChanges(ws);
 	}
 
-	private List<Integer> listChanges(String ws) throws Exception {
-		List<Integer> list = new ArrayList<Integer>();
+	private List<P4Revision> listChanges(String ws) throws Exception {
+		List<P4Revision> list = new ArrayList<P4Revision>();
+		GetChangelistsOptions opts = new GetChangelistsOptions();
+
+		Jenkins j = Jenkins.getInstance();
+		if (j != null) {
+			Descriptor dsc = j.getDescriptor(PerforceScm.class);
+			if (dsc instanceof PerforceScm.DescriptorImpl) {
+				PerforceScm.DescriptorImpl p4scm = (PerforceScm.DescriptorImpl) dsc;
+				int CHANGE_COUNT_LIMIT = p4scm.getMaxChanges();
+				opts.setMaxMostRecent(CHANGE_COUNT_LIMIT);
+			}
+		}
 
 		List<IFileSpec> spec = FileSpecBuilder.makeFileSpecList(ws);
-		GetChangelistsOptions opts = new GetChangelistsOptions();
-		opts.setMaxMostRecent(100);
 		List<IChangelistSummary> cngs = connection.getChangelists(spec, opts);
 		if (cngs != null) {
 			for (IChangelistSummary c : cngs) {
 				// don't try to add null or -1 changes
 				if (c != null && c.getId() != -1) {
+					P4Revision rev = new P4Revision(c.getId());
 					// don't add change entries already in the list
-					if (!(list.contains(c.getId()))) {
-						list.add(c.getId());
+					if (!(list.contains(rev))) {
+						list.add(rev);
 					}
 				}
 			}
@@ -984,7 +995,7 @@ public class ClientHelper extends ConnectionHelper {
 	 * @return List of changes
 	 * @throws Exception push up stack
 	 */
-	public List<Integer> listHaveChanges(P4Revision from) throws Exception {
+	public List<P4Revision> listHaveChanges(P4Revision from) throws Exception {
 		if (from.getChange() > 0) {
 			log("P4: Polling with range: " + from + ",now");
 			return listChanges(from);
@@ -1003,7 +1014,7 @@ public class ClientHelper extends ConnectionHelper {
 	 * @return List of changes
 	 * @throws Exception push up stack
 	 */
-	public List<Integer> listHaveChanges(P4Revision from, P4Revision changeLimit) throws Exception {
+	public List<P4Revision> listHaveChanges(P4Revision from, P4Revision changeLimit) throws Exception {
 		if (from.getChange() > 0) {
 			log("P4: Polling with range: " + from + "," + changeLimit);
 			return listChanges(from, changeLimit);
@@ -1014,10 +1025,10 @@ public class ClientHelper extends ConnectionHelper {
 		return listHaveChanges(fileSpec);
 	}
 
-	private List<Integer> listHaveChanges(String fileSpec) throws Exception {
+	private List<P4Revision> listHaveChanges(String fileSpec) throws Exception {
 		log("P4: Polling with cstat: " + fileSpec);
 
-		List<Integer> haveChanges = new ArrayList<Integer>();
+		List<P4Revision> haveChanges = new ArrayList<P4Revision>();
 		Map<String, Object>[] map;
 		map = connection.execMapCmd("cstat", new String[]{fileSpec}, null);
 
@@ -1027,7 +1038,7 @@ public class ClientHelper extends ConnectionHelper {
 				if (status.startsWith("have")) {
 					String value = (String) entry.get("change");
 					int change = Integer.parseInt(value);
-					haveChanges.add(change);
+					haveChanges.add(new P4Revision(change));
 				}
 			}
 		}
